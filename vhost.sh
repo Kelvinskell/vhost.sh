@@ -1,9 +1,7 @@
 #!/bin/bash
-set -e
-#This is a script that automates the creation of Apache2 virtual hosts.
-#This script is specially adapted for Linux users and may not work on other operating systems.
-#This script can be expanded/modified to include other configuration options as needed. 
-#The configurable speaking cow, cowsay, is optionally required for this program.
+# Set strict mode
+set -euo pipefail
+# Create a directory structure
 echo "Enter the name of your domain"
 read domain
 sudo mkdir -p /var/www/$domain/html
@@ -71,6 +69,3 @@ else
 echo "Mission Complete!"
 fi
 exit
-#Written by kelvin C Onuchukwu
-#https://www.linkedin.com/in/kelvin-onuchukwu-3460871a1
-#Please report any bugs to kelvinskelll@gmail.com
