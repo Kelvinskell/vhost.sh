@@ -1,34 +1,38 @@
 #!/bin/bash
 # Set strict mode
 set -euo pipefail
-# Create a directory structure
+
+# Create a directory structure with suitable permissions
 echo "Enter the name of your domain"
 read domain
-sudo mkdir -p /var/www/$domain/html
+sudo mkdir -p /var/www/$domain/html/
 sudo chown -R $USER:$USER /var/www/$domain/html
 sudo chmod -R 755 /var/www/$domain
-echo "Directory created for $domain"
+echo "Created directory  for $domain"
+
 function F1()
 {
-echo "Create your own index page or use a custom index page?\nPress yes to create yours and no to use a custom file."
+	# Create Index page for html directory
+echo -e "Open an editor to create your index page?\tChoose no to input texts and automatically convert to html."
 read -p "yes or no? " ans
-if [ $ans == yes | $ans == y ]
+if [ $ans == yes ] || [ $ans == y ]
 then
 	vim /var/www/$domain/html/index.html
 elif
-	[ $ans == no | $ans == n]
+	[ $ans == no ] || [ $ans == n ]
 then
-echo "Input texts for your index page. (Seperate each sentence with a comma)"
-read index
-IFS=","
-read -a indexarr <<< "$index"
-echo -e "<html>\n<head>\n<title>${indexarr[0]}</title>\n</head>\n<body>\n<h1>${indexarr[1]}</h1>\n</body>\n</html>" > /var/www/$domain/html/index.html
+echo "Input title: " 
+read title
+echo "Input body: "
+read body
+echo -e "<html>\n<head>\n<title>$title</title>\n</head>\n<body>\n<h1>$body</h1>\n</body>\n</html>" > /var/www/$domain/html/index.html
 else
 	echo "Incorrect input"
 	F1
 fi
 }
 F1
+
 echo "Index page created for $domain"
 echo "Creating a virtual host file for $domain"
 echo "Please enter values for the following: ServerAdmin,ServerName,ServerAlias"
