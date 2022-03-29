@@ -40,7 +40,7 @@ echo "Please enter values for the following: ServerAdmin,ServerName,ServerAlias"
 read -p "Seperate each entry with a comma " values
 IFS=","
 read -a valuesstr <<< "$values"
-sudo echo -e "<VirtualHost *:80>\nServerAdmin ${valuesstr[0]}\nServerName ${valuesstr[1]}\nServerAlias ${valuesstr[2]}\nDocumentRoot /var/www/$domain/html\nErrorLog ${APACHE_LOG_DIR}/error.log\nCustomLog ${APACHE_LOG_DIR}/access.log\n</VirtualHost>" > $domain.conf 
+sudo echo -e "<VirtualHost *:80>\nServerAdmin ${valuesstr[0]}\nServerName ${valuesstr[1]}\nServerAlias ${valuesstr[2]}\nDocumentRoot /var/www/$domain/html\nErrorLog \${APACHE_LOG_DIR}/error.log\nCustomLog \${APACHE_LOG_DIR}/access.log\n</VirtualHost>" > $domain.conf 
 
 # Place the virtual host file into sites-available directory
 sudo mv $domain.conf /etc/apache2/sites-available/$domain.conf 
