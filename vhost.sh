@@ -1,6 +1,6 @@
 #!/bin/bash
 # Set strict mode
-set -euo pipefail
+set -eo pipefail
 
 # Create a directory structure with suitable permissions
 echo "Enter the name of your domain"
@@ -32,17 +32,20 @@ else
 fi
 }
 F1
-
 echo "Index page created for $domain"
+
+# Create a new virtual host file
 echo "Creating a virtual host file for $domain"
 echo "Please enter values for the following: ServerAdmin,ServerName,ServerAlias"
-read -p "Seperate each entry with a comma" values
+read -p "Seperate each entry with a comma " values
 IFS=","
-read valuesstr <<< "$values"
+read -a valuesstr <<< "$values"
+sudo echo -e "<VirtualHost *:80>\nServerAdmin ${valuesstr[0]}\nServerName ${valuesstr[1]}\nServerAlias ${valuesstr[2]}\nDocumentRoot /var/www/$domain/html\nErrorLog ${APACHE_LOG_DIR}/error.log\nCustomLog ${APACHE_LOG_DIR}/access.log\n</VirtualHost>" > $domain.conf 
 
-sudo echo -e "<VirtualHost *:80\nServerAdmin ${valuesstr[0]}\nServerName ${valuesstr[1]}\nServerAlias ${valuesstr[2]}\nDocumentRoot /var/www/$domain/html\nErrorLog ${APACHE_LOG_DIR}/error.log\nCustomLog ${APACHE_LOG_DIR}/access.log\n</VirtualHost>" > /etc/apache2/sites-available/$domain.conf 
+# Place the virtual host file into sites-available directory
+sudo mv $domain.conf /etc/apache2/sites-available/$domain.conf 
+echo "Virtual host file created for $domain."
 
-echo "Virtual host file created."
 function F2()
 {
 echo "Activate virtual host configuration file?"
