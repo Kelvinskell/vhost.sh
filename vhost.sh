@@ -50,7 +50,7 @@ function F2()
 {
 echo "Activate virtual host configuration file?"
 read -p "Yes or no? " answer
-if [ $answer == yes |$answer == y ]
+if [ $answer == yes ] || [ $answer == y ]
 then
 	sudo a2ensite $domain.conf
 	echo "Active"
@@ -64,15 +64,18 @@ else
 fi
 }
 F2
+
+# Disable default configuration file
 sudo a2dissite 000-default.conf
-sudo systemctl restart apache 2
-sudo echo "ServerName $domain" > /etc/apache2/conf-available/servername.conf
-sudo apache2ctl configtest
+
+# Restart Webserver
+sudo systemctl restart apache2
 sleep 2
+
 if [ -d /usr/share/cowsay ]
 then
-	cowsay -y "Mission Complete!"
+	cowsay -y "Task Complete!"
 else
-echo "Mission Complete!"
+echo "Task Complete!"
 fi
 exit
