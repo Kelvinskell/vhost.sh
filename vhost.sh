@@ -1,4 +1,5 @@
 #!/bin/bash
+
 # Set strict mode
 set -eo pipefail
 
@@ -8,6 +9,7 @@ read domain
 sudo mkdir -p /var/www/$domain/html/
 sudo chown -R $USER:$USER /var/www/$domain/html
 sudo chmod -R 755 /var/www/$domain
+sleep 1
 echo "Created directory  for $domain"
 
 function F1()
@@ -30,6 +32,7 @@ else
 	echo "Incorrect input"
 	F1
 fi
+sleep 1
 }
 F1
 echo "Index page created for $domain"
@@ -40,7 +43,8 @@ echo "Please enter values for the following: ServerAdmin,ServerName,ServerAlias"
 read -p "Seperate each entry with a comma " values
 IFS=","
 read -a valuesstr <<< "$values"
-sudo echo -e "<VirtualHost *:80>\nServerAdmin ${valuesstr[0]}\nServerName ${valuesstr[1]}\nServerAlias ${valuesstr[2]}\nDocumentRoot /var/www/$domain/html\nErrorLog \${APACHE_LOG_DIR}/error.log\nCustomLog \${APACHE_LOG_DIR}/access.log\n</VirtualHost>" > $domain.conf 
+sudo echo -e "<VirtualHost *:80>\nServerAdmin ${valuesstr[0]}\nServerName ${valuesstr[1]}\nServerAlias ${valuesstr[2]}\nDocumentRoot /var/www/$domain/html\nErrorLog \${APACHE_LOG_DIR}/$domain_error.log\nCustomLog \${APACHE_LOG_DIR}/$domain_access.log combined\n</VirtualHost>" > $domain.conf 
+sleep  1
 
 # Place the virtual host file into sites-available directory
 sudo mv $domain.conf /etc/apache2/sites-available/$domain.conf 
@@ -62,6 +66,7 @@ else
 	echo "Incorrect answer"
 	F2
 fi
+sleep 1
 }
 F2
 
