@@ -3,9 +3,17 @@
 # Set strict mode
 set -eo pipefail
 
-# Create a directory structure with suitable permissions
+# Check if domain name is valid
 echo "Enter the name of your domain"
 read domain
+if $(echo $domain | egrep -q '.com|.org|.edu')
+then
+	:
+else
+	echo "Domain Name Not Valid"
+	exit
+fi
+# Create a directory structure with suitable permissions
 sudo mkdir -p /var/www/$domain/html/
 sudo chown -R $USER:$USER /var/www/$domain/html
 sudo chmod -R 755 /var/www/$domain
@@ -43,9 +51,8 @@ echo "Please enter values for the following: ServerAdmin,ServerName,ServerAlias"
 read -p "Seperate each entry with a comma " values
 IFS=","
 read -a valuesstr <<< "$values"
-sudo echo -e "<VirtualHost *:80>\nServerAdmin ${valuesstr[0]}\nServerName ${valuesstr[1]}\nServerAlias ${valuesstr[2]}\nDocumentRoot /var/www/$domain/html\nErrorLog \${APACHE_LOG_DIR}/$domain_error.log\nCustomLog \${APACHE_LOG_DIR}/$domain_access.log combined\n</VirtualHost>" > $domain.conf 
+printf "%s\n"  "<VirtualHost *:80>" "ServerAdmin ${valuesstr[0]}" "ServerName ${valuesstr[1]}" "ServerAlias ${valuesstr[2]}" "DocumentRoot /var/www/$domain/html" "ErrorLog \${APACHE_LOG_DIR}/$domain""_error.log" "CustomLog \${APACHE_LOG_DIR}/$domain""_access.log combined" "</VirtualHost>" > $domain.conf
 sleep  1
-
 # Place the virtual host file into sites-available directory
 sudo mv $domain.conf /etc/apache2/sites-available/$domain.conf 
 echo "Virtual host file created for $domain."
