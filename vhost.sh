@@ -3,14 +3,22 @@
 # Set strict mode
 set -eo pipefail
 
+# Define colours
+Red='\033[1;31m'
+Green='\033[1;32m'
+Blue='\033[1;34m'
+Cyan='\033[1;36m'
+Purple='\033[1;35m'
+NC='\033[0;m'
+
 # Check if domain name is valid
-echo "Enter the name of your domain"
+echo -e "${Blue}Enter the name of your domain${NC}"
 read domain
 if $(echo $domain | egrep -q '.com|.org|.edu')
 then
 	:
 else
-	echo "Domain Name Not Valid"
+	echo -e "${Red}Domain Name Not Valid"
 	exit
 fi
 # Create a directory structure with suitable permissions
@@ -18,12 +26,12 @@ sudo mkdir -p /var/www/$domain/html/
 sudo chown -R $USER:$USER /var/www/$domain/html
 sudo chmod -R 755 /var/www/$domain
 sleep 1
-echo "Created directory  for $domain"
+echo -e "${Green}Created directory  for $domain"
 
 function F1()
 {
 	# Create Index page for html directory
-echo -e "Open an editor to create your index page?\tChoose no to input texts and automatically convert to html."
+echo -e "${Purple}Open an editor to create your index page?\tChoose no to input texts and automatically convert to html."
 read -p "yes or no? " ans
 if [ $ans == yes ] || [ $ans == y ]
 then
@@ -31,23 +39,23 @@ then
 elif
 	[ $ans == no ] || [ $ans == n ]
 then
-echo "Input title: " 
+echo -e "${Cyan}Input title:${NC} " 
 read title
-echo "Input body: "
+echo -e "${Cyan}Input body:${NC} "
 read body
 echo -e "<html>\n<head>\n<title>$title</title>\n</head>\n<body>\n<h1>$body</h1>\n</body>\n</html>" > /var/www/$domain/html/index.html
 else
-	echo "Incorrect input"
+	echo -e "${Red}Incorrect input"
 	F1
 fi
 sleep 1
 }
 F1
-echo "Index page created for $domain"
+echo -e "${Green}Index page created for $domain"
 
 # Create a new virtual host file
-echo "Creating a virtual host file for $domain"
-echo "Please enter values for the following: ServerAdmin,ServerName,ServerAlias"
+echo -e "${Blue}Creating a virtual host file for $domain"
+echo -e "${Cyan}Please enter values for the following: ServerAdmin,ServerName,ServerAlias"
 read -p "Seperate each entry with a comma: " values
 IFS=","
 read -a valuesstr <<< "$values"
@@ -55,22 +63,22 @@ printf "%s\n"  "<VirtualHost *:80>" "ServerAdmin ${valuesstr[0]}" "ServerName ${
 sleep  1
 # Place the virtual host file into sites-available directory
 sudo mv $domain.conf /etc/apache2/sites-available/$domain.conf 
-echo "Virtual host file created for $domain."
+echo -e "${Green}Virtual host file created for $domain."
 
 function F2()
 {
-echo "Activate virtual host configuration file?"
+echo -e "${Cyan}Activate virtual host configuration file?"
 read -p "Yes or no? " answer
 if [ $answer == yes ] || [ $answer == y ]
 then
 	sudo a2ensite $domain.conf
-	echo "Active"
+	echo -e "${Green}Active"
 elif
 	[ $answer == no |$answer == n ]
 then
 	continue
 else
-	echo "Incorrect answer"
+	echo -e "${Red}Incorrect answer"
 	F2
 fi
 sleep 1
@@ -88,6 +96,6 @@ if [ -d /usr/share/cowsay ]
 then
 	cowsay -y "Task Complete!"
 else
-echo "Task Complete!"
+echo -e "${Green}Task Complete!"
 fi
 exit
