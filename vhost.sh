@@ -48,7 +48,7 @@ echo "Index page created for $domain"
 # Create a new virtual host file
 echo "Creating a virtual host file for $domain"
 echo "Please enter values for the following: ServerAdmin,ServerName,ServerAlias"
-read -p "Seperate each entry with a comma " values
+read -p "Seperate each entry with a comma: " values
 IFS=","
 read -a valuesstr <<< "$values"
 printf "%s\n"  "<VirtualHost *:80>" "ServerAdmin ${valuesstr[0]}" "ServerName ${valuesstr[1]}" "ServerAlias ${valuesstr[2]}" "DocumentRoot /var/www/$domain/html" "ErrorLog \${APACHE_LOG_DIR}/$domain""_error.log" "CustomLog \${APACHE_LOG_DIR}/$domain""_access.log combined" "</VirtualHost>" > $domain.conf
