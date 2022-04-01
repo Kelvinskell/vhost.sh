@@ -15,10 +15,24 @@ NC='\033[0;m'
 echo -e "${Blue}Enter the name of your domain${NC}"
 read domain
 if $(echo $domain | egrep -q '.com|.org|.edu')
-then
-	:
+then	
+	if [ -f /etc/apache2/sites-available/$domain.conf ] || [ -f /etc/httpd/sites-available/$domain.conf ]
+	then
+		echo -e "Domain name already exists. \nOverwrite?"
+		read -p "yes or no " reply
+		if [ $reply == yes ] || [ $reply == y ]
+		then
+			:
+		else
+			echo -e "${Purple}Exiting program...${NC}"
+			sleep 1
+			exit 0
+		fi
+	else
+		:
+	fi
 else
-	echo -e "${Red}Domain Name Not Valid"
+	echo -e "${Red}Domain Name Not Valid${NC}"
 	exit
 fi
 # Create a directory structure with suitable permissions
@@ -31,7 +45,7 @@ echo -e "${Green}Created directory  for $domain"
 function F1()
 {
 	# Create Index page for html directory
-echo -e "${Purple}Open an editor to create your index page?\tChoose no to input texts and automatically convert to html."
+echo -e "${Purple}Open an editor to create your index page?\tChoose no to input texts and automatically convert to html.${NC}"
 read -p "yes or no? " ans
 if [ $ans == yes ] || [ $ans == y ]
 then
@@ -55,47 +69,78 @@ echo -e "${Green}Index page created for $domain"
 
 # Create a new virtual host file
 echo -e "${Blue}Creating a virtual host file for $domain"
-echo -e "${Cyan}Please enter values for the following: ServerAdmin,ServerName,ServerAlias"
+echo -e "${Cyan}Please enter values for the following: ServerAdmin,ServerName,ServerAlias${NC}"
 read -p "Seperate each entry with a comma: " values
 IFS=","
 read -a valuesstr <<< "$values"
-printf "%s\n"  "<VirtualHost *:80>" "ServerAdmin ${valuesstr[0]}" "ServerName ${valuesstr[1]}" "ServerAlias ${valuesstr[2]}" "DocumentRoot /var/www/$domain/html" "ErrorLog \${APACHE_LOG_DIR}/$domain""_error.log" "CustomLog \${APACHE_LOG_DIR}/$domain""_access.log combined" "</VirtualHost>" > $domain.conf
-sleep  1
+
 # Place the virtual host file into sites-available directory
-sudo mv $domain.conf /etc/apache2/sites-available/$domain.conf 
+# Conditional check to dtermine correct directory to place the virtual host file
+if [ -d /etc/apache2 ]
+then
+	printf "%s\n"  "<VirtualHost *:80>" "ServerAdmin ${valuesstr[0]}" "ServerName ${valuesstr[1]}" "ServerAlias ${valuesstr[2]}" "DocumentRoot /var/www/$domain/html" "ErrorLog \${APACHE_LOG_DIR}/$domain""_error.log" "CustomLog \${APACHE_LOG_DIR}/$domain""_access.log combined" "</VirtualHost>" > $domain.conf
+	sleep  1
+	sudo mv $domain.conf /etc/apache2/sites-available/$domain.conf 
+elif [ -d /etc/httpd ]
+then
+	if [ -d /etc/httpd/sites-available ] && [ -d /etc/httpd/sites-enabled ]
+	then
+		:
+	else
+		sudo mkdir /etc/httpd/sites-available
+		sudo mkdir /etc/httpd/sites-enabled
+	fi
+	sudo printf "%s\n"  "<VirtualHost *:80>" "ServerAdmin ${valuesstr[0]}" "ServerName ${valuesstr[1]}" "ServerAlias ${valuesstr[2]}" "DocumentRoot /var/www/$domain/html" "ErrorLog /var/log/httpd/$domain""-error.log" "CustomLog /var/log/httpd/$domain""-access.log combined" "</VirtualHost>" > $domain.conf
+	sudo mv $domain.conf /etc/httpd/sites-available/$domain.conf
+else
+	echo "${Red}Error: Could not determine the appropriate directory to place virtual host file"
+	echo "${Red} Exiting abruptly.${NC}"
+	exit 1
+fi
 echo -e "${Green}Virtual host file created for $domain."
 
 function F2()
 {
-echo -e "${Cyan}Activate virtual host configuration file?"
+echo -e "${Cyan}Activate virtual host configuration file?${NC}"
 read -p "Yes or no? " answer
-if [ $answer == yes ] || [ $answer == y ]
+if [ $answer == yes ] || [ $answer == y ] 
 then
-	sudo a2ensite $domain.conf
-	echo -e "${Green}Active"
+	if [ -d /etc/apache2 ]
+	then
+		sudo a2ensite $domain.conf
+		echo -e "${Green}Active"
+		# Disable default configuration file
+		sudo a2dissite 000-default.conf
+	elif [ -d /etc/httpd ]
+	then
+		sudo ln -s /etc/httpd/sites-available/$domain /etc/httpd/sites-enabled/$domain.conf
+	fi
 elif
-	[ $answer == no |$answer == n ]
+	[ $answer == no ] || [ $answer == n ] && [ -d /etc/apache2 ] || [ -d /etc/httpd ]
 then
-	continue
+	:
 else
-	echo -e "${Red}Incorrect answer"
+	echo -e "${Red}Incorrect answeri${NC}"
 	F2
 fi
 sleep 1
 }
 F2
 
-# Disable default configuration file
-sudo a2dissite 000-default.conf
 
 # Restart Webserver
-sudo systemctl restart apache2
+if [ -d /etc/apache2 ]
+then
+	sudo systemctl restart apache2
+else
+	sudo systemctl restart httpd
+fi
 sleep 2
 
 if [ -d /usr/share/cowsay ]
 then
 	cowsay -y "Task Complete!"
 else
-echo -e "${Green}Task Complete!"
+echo -e "${Green}Task Complete!${NC}"
 fi
 exit
