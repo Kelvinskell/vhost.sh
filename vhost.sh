@@ -18,7 +18,7 @@ if $(echo $domain | egrep -q '.com|.org|.edu')
 then	
 	if [ -f /etc/apache2/sites-available/$domain.conf ] || [ -f /etc/httpd/sites-available/$domain.conf ]
 	then
-		echo -e "Domain name already exists. \nOverwrite?"
+		echo -e "${Cyan}Domain name already exists. ${NC} \nOverwrite?"
 		read -p "yes or no " reply
 		if [ $reply == yes ] || [ $reply == y ]
 		then
