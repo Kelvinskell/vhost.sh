@@ -106,7 +106,7 @@ then
 	fi
 	sudo printf "%s\n"  "<VirtualHost *:80>" "ServerAdmin ${valuesstr[0]}" "ServerName ${valuesstr[1]}" "ServerAlias ${valuesstr[2]}" "DocumentRoot /var/www/$domain/html" "ErrorLog /var/log/httpd/$domain""-error.log" "CustomLog /var/log/httpd/$domain""-access.log combined" "DirectoryIndex index.html" "</VirtualHost>" > $domain.conf
 	sudo cp  $domain.conf /etc/httpd/sites-available/$domain.conf
-	sudo touch /etc/httpd/conf.d/$domain.conf && sudo cp  $domain.conf /etc/httpd/conf.d/$domain.conf
+	sudo touch /etc/httpd/conf.d/$domain.conf && sudo cp  $domain.conf /etc/httpd/conf.d/$domain.conf && sudo rm $domain.conf
 else
 	echo "${Red}Error: Could not determine the appropriate directory to place virtual host file"
 	echo "${Red} Exiting abruptly.${NC}"
