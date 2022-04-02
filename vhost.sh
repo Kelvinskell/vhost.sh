@@ -1,14 +1,8 @@
 #!/bin/bash
 
 # Set strict mode
-set o pipefail
+set eo pipefail
 # Invoke Remove function on exit
-trap Remove exit
-function Remove()
-{
-	rm .check.txt 2>/dev/null
-}
-
 
 # Define colours
 Red='\033[1;31m'
@@ -18,31 +12,9 @@ Cyan='\033[1;36m'
 Purple='\033[1;35m'
 NC='\033[0;m'
 
-# Display options
-PS3="Select an option: "
 
-select opt in 'Create a virtual host' 'Remove a virtual host'
-do
-	if (( $REPLY == 1 ))
-	then
-		:
-	elif (( $REPLY == 2 ))
-	then
-		:
-	else
-		echo -n 1 >> .check.txt 2>/dev/null
-		grep -qw 111 .check.txt
-		if [[ $? == 0 ]]
-		then
-			echo -e "${Red}Too many wrong attempts. Exiting program...${NC}"
-			exit 1
-		else
-			echo -e "${Red}Invalid Option. Try again.${NC}"
-		fi
-	fi
-
-done
-
+function F1()
+{
 # Check if domain name is valid
 echo -e "${Blue}Enter the name of your domain${NC}"
 read domain
@@ -67,14 +39,22 @@ else
 	echo -e "${Red}Domain Name Not Valid${NC}"
 	exit
 fi
+F2
+}
+
+
+function F2()
+{
 # Create a directory structure with suitable permissions
 sudo mkdir -p /var/www/$domain/html/
 sudo chown -R $USER:$USER /var/www/$domain/html
 sudo chmod -R 755 /var/www/$domain
 sleep 1
 echo -e "${Green}Created directory  for $domain"
+F3
+}
 
-function F1()
+function F3()
 {
 	# Create Index page for html directory
 echo -e "${Purple}Open an editor to create your index page?\tChoose no to input texts and automatically convert to html.${NC}"
@@ -92,13 +72,15 @@ read body
 echo -e "<html>\n<head>\n<title>$title</title>\n</head>\n<body>\n<h1>$body</h1>\n</body>\n</html>" > /var/www/$domain/html/index.html
 else
 	echo -e "${Red}Incorrect input"
-	F1
+	F3
 fi
 sleep 1
-}
-F1
 echo -e "${Green}Index page created for $domain"
+F4
+}
 
+function F4()
+{
 # Create a new virtual host file
 echo -e "${Blue}Creating a virtual host file for $domain"
 echo -e "${Cyan}Please enter values for the following: ServerAdmin,ServerName,ServerAlias${NC}"
@@ -131,8 +113,10 @@ else
 	exit 1
 fi
 echo -e "${Green}Virtual host file created for $domain."
+F5
+}
 
-function F2()
+function F5()
 {
 echo -e "${Cyan}Activate virtual host configuration file?${NC}"
 read -p "Yes or no? " answer
@@ -154,13 +138,15 @@ then
 	:
 else
 	echo -e "${Red}Incorrect answeri${NC}"
-	F2
+	F5
 fi
 sleep 1
+F6
 }
-F2
 
 
+function F6()
+{
 # Restart Webserver
 if [ -d /etc/apache2 ]
 then
@@ -176,7 +162,46 @@ then
 else
 echo -e "${Green}Task Complete!${NC}"
 fi
-exit
+exit 0
+}
 
+# Remove function
+function F7()
+{
+sudo rm -rv /var/www/$domain 2>/dev/null
+if [ -d /etc/apache2 ]
+then
+	sudo rm -rv /etc/apache2/sites-available/$domain.conf 2>/dev/null
+elif [ -d /etc/httpd ]
+then
+	sudo rm -rv /etc/httpd/conf.d/$domain.conf 2>/dev/null
+	sudo rm -rv /etc/httpd/sites-available/$domain.conf 2>/dev/null
+fi
+F6
+}
 
+# Display options
+PS3="Select an option: "
+select opt in 'Create a virtual host' 'Remove a virtual host'
+do
+	if (( $REPLY == 1 ))
+	then
+		F1
+	elif (( $REPLY == 2 ))
+	then
+                # Check if domain name is valid
+                echo -e "${Blue}Enter the name of your domain${NC}"
+                read domain
+                if $(echo $domain | egrep -q '.com|.org|.edu')
+		then
+			F7
+                else
+			echo -e "${Red}Domain Name Not Valid${NC}"
+			exit 1
+		fi
+	else
+			echo -e "${Red}Invalid option.  Exiting program...${NC}"
+			exit 1
+	fi
 
+done
