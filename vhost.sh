@@ -16,7 +16,7 @@ echo -e "${Blue}Enter the name of your domain${NC}"
 read domain
 if $(echo $domain | egrep -q '.com|.org|.edu')
 then	
-	if [ -f /etc/apache2/sites-available/$domain.conf ] || [ -f /etc/httpd/sites-available/$domain.conf ]
+	if [ -f /etc/apache2/sites-available/$domain.conf ] || [ -f /etc/httpd/sites-available/$domain.conf ] || [ -f /etc/httpd/conf.d/$domain.conf ]
 	then
 		echo -e "${Cyan}Domain name already exists. ${NC} \nOverwrite?"
 		read -p "yes or no " reply
@@ -87,11 +87,12 @@ then
 	then
 		:
 	else
-		sudo mkdir /etc/httpd/sites-available
-		sudo mkdir /etc/httpd/sites-enabled
+		sudo mkdir /etc/httpd/sites-available 2>/dev/null
+		sudo mkdir /etc/httpd/sites-enabled 2>/dev/null
 	fi
-	sudo printf "%s\n"  "<VirtualHost *:80>" "ServerAdmin ${valuesstr[0]}" "ServerName ${valuesstr[1]}" "ServerAlias ${valuesstr[2]}" "DocumentRoot /var/www/$domain/html" "ErrorLog /var/log/httpd/$domain""-error.log" "CustomLog /var/log/httpd/$domain""-access.log combined" "</VirtualHost>" > $domain.conf
-	sudo mv $domain.conf /etc/httpd/sites-available/$domain.conf
+	sudo printf "%s\n"  "<VirtualHost *:80>" "ServerAdmin ${valuesstr[0]}" "ServerName ${valuesstr[1]}" "ServerAlias ${valuesstr[2]}" "DocumentRoot /var/www/$domain/html" "ErrorLog /var/log/httpd/$domain""-error.log" "CustomLog /var/log/httpd/$domain""-access.log combined" "DirectoryIndex index.html" "</VirtualHost>" > $domain.conf
+	sudo cp  $domain.conf /etc/httpd/sites-available/$domain.conf
+	sudo touch /etc/httpd/conf.d/$domain.conf && sudo cp  $domain.conf /etc/httpd/conf.d/$domain.conf
 else
 	echo "${Red}Error: Could not determine the appropriate directory to place virtual host file"
 	echo "${Red} Exiting abruptly.${NC}"
@@ -113,7 +114,7 @@ then
 		sudo a2dissite 000-default.conf
 	elif [ -d /etc/httpd ]
 	then
-		sudo ln -s /etc/httpd/sites-available/$domain /etc/httpd/sites-enabled/$domain.conf
+		sudo ln -s /etc/httpd/sites-available/$domain /etc/httpd/sites-enabled/$domain.conf 2>/dev/null
 	fi
 elif
 	[ $answer == no ] || [ $answer == n ] && [ -d /etc/apache2 ] || [ -d /etc/httpd ]
