@@ -194,7 +194,14 @@ do
                 read domain
                 if $(echo $domain | egrep -q '.com|.org|.edu')
 		then
-			F7
+			if [ -f /etc/apache2/sites-available/$domain.conf ] || [ -f /etc/httpd/conf.d/$domain.conf ] || [ -f /etc/httpd/sites-available/$domain.conf ]
+			then
+				F7
+			else
+				
+				echo -e "${Red}$domain does not exist on your system.${NC}"
+				exit 1
+			fi
                 else
 			echo -e "${Red}Domain Name Not Valid${NC}"
 			exit 1
