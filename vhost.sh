@@ -1,7 +1,14 @@
 #!/bin/bash
 
 # Set strict mode
-set -eo pipefail
+set o pipefail
+# Invoke Remove function on exit
+trap Remove exit
+function Remove()
+{
+	rm .check.txt 2>/dev/null
+}
+
 
 # Define colours
 Red='\033[1;31m'
@@ -10,6 +17,31 @@ Blue='\033[1;34m'
 Cyan='\033[1;36m'
 Purple='\033[1;35m'
 NC='\033[0;m'
+
+# Display options
+PS3="Select an option: "
+
+select opt in 'Create a virtual host' 'Remove a virtual host'
+do
+	if (( $REPLY == 1 ))
+	then
+		:
+	elif (( $REPLY == 2 ))
+	then
+		:
+	else
+		echo -n 1 >> .check.txt 2>/dev/null
+		grep -qw 111 .check.txt
+		if [[ $? == 0 ]]
+		then
+			echo -e "${Red}Too many wrong attempts. Exiting program...${NC}"
+			exit 1
+		else
+			echo -e "${Red}Invalid Option. Try again.${NC}"
+		fi
+	fi
+
+done
 
 # Check if domain name is valid
 echo -e "${Blue}Enter the name of your domain${NC}"
@@ -145,3 +177,6 @@ else
 echo -e "${Green}Task Complete!${NC}"
 fi
 exit
+
+
+
