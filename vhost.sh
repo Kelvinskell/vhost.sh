@@ -2,7 +2,6 @@
 
 # Set strict mode
 set eo pipefail
-# Invoke Remove function on exit
 
 # Define colours
 Red='\033[1;31m'
